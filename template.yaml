@@ -1,0 +1,45 @@
+
+# FIRST VERSION 
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  coinmarketcap-api
+Transform:
+- AWS::Serverless-2016-10-31
+
+Resources:
+  ScheduledEventLogger:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: TESTS -- DESCRIPTION ....
+      Runtime: python3.8
+      Architectures:
+      - x86_64
+      Handler: src/handlers/scheduled-event.scheduledEventLoggerHandler
+      # This property associates this Lambda function with a scheduled CloudWatch Event 0 */6 * * ? *.
+      Events:
+        CloudWatchEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(* * * * ? *)
+      MemorySize: 128
+      Timeout: 100
+# # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName:
+        Ref: ApplicationResourceGroup
+      AutoConfigurationEnabled: 'true'
+Globals:
+  Function:
+    Tracing: Active
+  Api:
+    TracingEnabled: true
