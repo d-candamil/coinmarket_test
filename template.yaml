@@ -12,7 +12,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Description: TESTS -- DESCRIPTION ....
-      Runtime: python3.10
+      Runtime: python3.8
       Architectures:
       - x86_64
       Handler: src/handlers/scheduled-event.scheduledEventLoggerHandler
@@ -24,7 +24,18 @@ Resources:
             Schedule: cron(* * * * ? *)
       MemorySize: 128
       Timeout: 100
-# # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ItemsTable
+  ItemsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: coinmarketcap
+      PrimaryKey:
+        Name: date
+        Type: String
+  # More info about Globals:
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:

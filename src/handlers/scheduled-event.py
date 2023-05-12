@@ -1,9 +1,23 @@
 
+from decimal import Decimal
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
 
+import boto3
+# from boto.dynamodb2.table import Table
+import datetime
+
 def scheduledEventLoggerHandler(event, context):
+
+    dynamodb = boto3.resource('dynamodb')
+    #print(dynamodb)
+
+    # Create a datetime object
+    my_date = datetime.datetime.now()
+    # Convert the datetime object to a string using strftime
+    my_string = my_date.strftime("%Y-%m-%d")
+
 
     url = 'https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
     parameters = {
@@ -21,8 +35,35 @@ def scheduledEventLoggerHandler(event, context):
 
     try:
         response = session.get(url, params=parameters)
-        data = json.loads(response.text)
+        data = json.loads(response.text, parse_float=Decimal)
+
+        print('------------')
+        print(data['status'])
+        print('------------')
+        """
+        table = dynamodb.put_item(
+            TableName='coinmarketcap',
+            Item={
+                'date':{'S':my_string},
+                'data':{'M': {'hola':data}}
+            }
+        )
+        """
+        dynamodb.batch_write_item(
+            RequestItems={
+                'coinmarketcap': [
+                    {
+                        'PutRequest': {
+                            'Item': {
+                                'date': my_string,
+                                'data': data
+                            }
+                        }
+                    }
+                ]
+            }
+        )
         print(data)
     except (ConnectionError, Timeout, TooManyRedirects) as e:
       print(e)
-    
+
