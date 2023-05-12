@@ -1,24 +1,28 @@
-import os
-import requests
+
+from requests import Request, Session
+from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+import json
 
 def scheduledEventLoggerHandler(event, context):
-    # set up the API endpoint and headers
-    url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-    headers = {'X-CMC_PRO_API_KEY': os.environ['1e302b38-b278-493b-8303-fa7c56a6c17a']}
+
+    url = 'https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+    parameters = {
+            'start':'1',
+            'limit':'5000',
+            'convert':'USD'
+        }
+    headers = {
+            'Accepts': 'application/json',
+            'X-CMC_PRO_API_KEY': 'b54bcf4d-1bca-4e8e-9a24-22ff2c3d462c',
+        }
+
+    session = Session()
+    session.headers.update(headers)
+
+    try:
+        response = session.get(url, params=parameters)
+        data = json.loads(response.text)
+        print(data)
+    except (ConnectionError, Timeout, TooManyRedirects) as e:
+      print(e)
     
-    # set up the API parameters (in this case, we're fetching the Bitcoin price)
-    params = {'symbol': 'BTC'}
-    
-    # make the API request
-    response = requests.get(url, headers=headers, params=params)
-    
-    # parse the response and extract the Bitcoin price
-    data = response.json()
-    price = data['data']['BTC']['quote']['USD']['price']
-    
-    # log the Bitcoin price and return it as the response body
-    print('Current Bitcoin price: ${}'.format(price))
-    return {
-        'statusCode': 200,
-        'body': 'Current Bitcoin price: ${}'.format(price)
-    }
