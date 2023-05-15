@@ -5,7 +5,6 @@ from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
 
 import boto3
-# from boto.dynamodb2.table import Table
 import datetime
 
 def scheduledEventLoggerHandler(event, context):
@@ -16,7 +15,7 @@ def scheduledEventLoggerHandler(event, context):
     # Create a datetime object
     my_date = datetime.datetime.now()
     # Convert the datetime object to a string using strftime
-    my_string = my_date.strftime("%Y-%m-%d")
+    my_string = my_date.strftime("%Y-%m-%d-%H:%M:%S")
 
 
     url = 'https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
@@ -37,18 +36,6 @@ def scheduledEventLoggerHandler(event, context):
         response = session.get(url, params=parameters)
         data = json.loads(response.text, parse_float=Decimal)
 
-        print('------------')
-        print(data['status'])
-        print('------------')
-        """
-        table = dynamodb.put_item(
-            TableName='coinmarketcap',
-            Item={
-                'date':{'S':my_string},
-                'data':{'M': {'hola':data}}
-            }
-        )
-        """
         dynamodb.batch_write_item(
             RequestItems={
                 'coinmarketcap': [

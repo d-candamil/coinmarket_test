@@ -49,6 +49,33 @@ Resources:
       ResourceGroupName:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: 'true'
+  # GET DATA FROM coinmarketcap
+  getCoinMarketCap:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/get-data-coinmarketcap.coinmarketcap_get_data
+      Runtime: python3.8
+      Timeout: 10
+      Events:
+        MyApi:
+          Type: 'Api'
+          Properties:
+            Path: /
+            Method: get
+      Policies:
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ItemsTable
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          SAMPLE_TABLE: !Ref ItemsTable
+Outputs:
+  WebEndpoint:
+    Description: API Gateway endpoint URL for  stage
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 Globals:
   Function:
     Tracing: Active
